@@ -1,0 +1,137 @@
+title Thrift Store DB Design
+customers [icon: user, color: green] {
+  id SERIAL PK
+ 
+  first_name VARCHAR(50) NOT  NULL
+  last_name VARCHAR(50)
+
+  email VARCHAR(100) UNIQUE NOT NULL
+  password VARCHAR(255) NOT NULL // hashed
+
+  phone VARCHAR(15) NOT NULL
+  street TEXT NOT NULL
+  city VARCHAR(50) NOT NULL
+  state VARCHAR(50) NOT NULL
+  pincode VARCHAR(10) NOT NULL
+  country VARCHAR(50) NOT NULL
+
+  is_verified BOOLEAN DEFAULT FALSE
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+auth_tokens [icon: key, color: green] {
+  id SERIAL PK
+  customer_id INT NOT NULL FK
+
+  token VARCHAR(255) UNIQUE NOT NULL
+  type ENUM('verification', 'reset') NOT NULL
+  expires_at TIMESTAMP NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+products [icon: box, color: orange] {
+  id SERIAL PK
+
+  title VARCHAR(150) NOT NULL
+  description TEXT
+  price DECIMAL(10, 2) NOT NULL
+
+  size ENUM('xs', 's', 'm', 'l', 'xl')
+  color varchar(20)
+
+  type ENUM('thrifted', 'handmade') NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+thrifted_products [icon: box, color: orange] {
+  product_id INT PK FK
+
+  condition ENUM('new', 'like_new', 'good', 'worn') NOT NULL
+}
+
+handmade_products [icon: box, color: orange] {
+  product_id INT PK FK
+
+  quantity INT NOT NULL CHECK (quantity ge 0)
+}
+
+orders [icon: box, color: blue] {
+  id SERIAL PK
+
+  customer_id INT NOT NULL FK
+
+  order_number VARCHAR(50) UNIQUE NOT NULL
+  total_amount DECIMAL(10,2) NOT NULL
+  status ENUM('placed', 'confirmed', 'shipped', 'delivered', 'cancelled') NOT NULL
+
+  // address snapshot
+  street TEXT NOT NULL
+  city VARCHAR(50) NOT NULL
+  state VARCHAR(50) NOT NULL
+  pincode VARCHAR(10) NOT NULL
+  country VARCHAR(50) NOT NULL
+
+  notes TEXT
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+order_items [icon: boxes, color: blue] {
+  id SERIAL PK
+
+  order_id INT NOT NULL FK
+  product_id INT NOT NULL FK
+  // UNIQUE(order_id, product_id)
+
+  quantity INT NOT NULL CHECK (quantity gt 0)
+  price_at_purchase DECIMAL(10,2) NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+payments[icon: money, color: yellow] {
+  id SERIAL PK
+  order_id INT NOT NULL FK
+
+  amount DECIMAL(10, 2) NOT NULL
+  status ENUM('pending', 'success', 'failed') NOT NULL
+  payment_method ENUM('upi', 'card', 'cod') NOT NULL
+
+  transaction_id VARCHAR(100)
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+shipments[icon: ship, color: yellow] {
+  id SERIAL PK
+  order_id INT NOT NULL UNIQUE FK
+
+  status ENUM('pending', 'shipped', 'out_for_delivery', 'delivered') NOT NULL
+
+  courier_name VARCHAR(50)
+  tracking_number VARCHAR(100)
+
+  shipped_at TIMESTAMP
+  delivered_at TIMESTAMP
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+customers.id < auth_tokens.customer_id
+products.id - thrifted_products.product_id
+products.id - handmade_products.product_id
+customers.id < orders.customer_id
+orders.id < order_items.order_id
+products.id < order_items.product_id
+orders.id < payments.order_id
+orders.id - shipments.order_id
