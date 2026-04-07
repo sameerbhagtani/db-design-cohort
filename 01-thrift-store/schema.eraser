@@ -1,4 +1,4 @@
-title Thrift Store DB Design
+title Thrift & Handmade Store ER Diagram
 customers [icon: user, color: green] {
   id SERIAL PK
  
