@@ -1,0 +1,164 @@
+title Fitness Coaching Platform ER Diagram
+users [icon: user, color: green] {
+  id SERIAL PK
+
+  first_name VARCHAR(50) NOT NULL
+  last_name VARCHAR(50) NOT NULL
+  email VARCHAR(100) UNIQUE NOT NULL
+  password VARCHAR(255) NOT NULL
+
+  role ENUM('trainer', 'client') NOT NULL
+  is_verified BOOLEAN DEFAULT FALSE
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+trainers [icon: user, color: green] {
+  user_id INT PK FK
+
+  bio TEXT
+  experience_years INT
+  specialization VARCHAR(100)
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+clients [icon: user, color: green] {
+  user_id INT PK FK
+
+  age INT NOT NULL
+  gender ENUM('male', 'female', 'other') NOT NULL
+  fitness_goal TEXT
+  health_conditions TEXT
+  current_weight_kg DECIMAL(5,2)
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()  
+}
+
+auth_tokens [icon: key, color: green] {
+  id SERIAL PK
+  user_id INT NOT NULL FK
+
+  token VARCHAR(255) UNIQUE NOT NULL
+  type ENUM('verification', 'reset') NOT NULL
+
+  expires_at TIMESTAMP NOT NULL
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+plans [icon: activity, color: blue] {
+  id SERIAL PK
+  trainer_id INT NOT NULL FK
+
+  title VARCHAR(100) NOT NULL
+  description TEXT
+  duration_days INT NOT NULL
+  price DECIMAL(10, 2) NOT NULL
+
+  mode ENUM('online', 'offline', 'hybrid') NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+subscriptions [icon: activity, color: blue] {
+  id SERIAL PK
+
+  client_id INT NOT NULL FK
+  plan_id INT NOT NULL FK
+
+  start_date DATE NOT NULL
+  end_date DATE NOT NULL
+  price_at_purchase DECIMAL(10,2) NOT NULL
+  status ENUM('active', 'expired', 'cancelled') NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+consultations [icon: calendar, color: blue] {
+  id SERIAL PK
+
+  client_id INT NOT NULL FK
+  trainer_id INT NOT NULL FK
+
+  status ENUM('scheduled', 'completed', 'cancelled') NOT NULL
+
+  price DECIMAL(10,2) NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+payments [icon: money, color: yellow] {
+  id SERIAL PK
+  subscription_id INT FK
+  consultation_id INT FK
+
+  amount DECIMAL(10, 2) NOT NULL
+  status ENUM('pending', 'success', 'failed') NOT NULL
+  payment_method ENUM('upi', 'card', 'cash') NOT NULL
+  transaction_id VARCHAR(100) UNIQUE
+
+  paid_at TIMESTAMP
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+sessions [icon: calendar, color: yellow] {
+  id SERIAL PK
+
+  subscription_id INT FK
+  consultation_id INT FK
+
+  type ENUM('consultation', 'coaching') NOT NULL
+  status ENUM('scheduled', 'completed', 'cancelled') NOT NULL
+  mode ENUM('online', 'offline') NOT NULL
+
+  meeting_link TEXT
+  location TEXT
+
+  scheduled_at TIMESTAMP NOT NULL
+  duration_minutes INT
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+check_ins [icon: timer, color: yellow] {
+  id SERIAL PK
+
+  subscription_id INT NOT NULL FK
+
+  weight_kg DECIMAL(5,2)
+  chest_cm DECIMAL(5,2)
+  waist_cm DECIMAL(5,2)
+  hips_cm DECIMAL(5,2)
+  biceps_cm DECIMAL(5,2)
+  body_fat_percentage DECIMAL(5,2)
+
+  client_notes TEXT
+  trainer_notes TEXT
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+// relations
+trainers.user_id - users.id
+clients.user_id - users.id
+auth_tokens.user_id > users.id
+plans.trainer_id > trainers.user_id
+subscriptions.client_id > clients.user_id
+subscriptions.plan_id > plans.id
+consultations.client_id > clients.user_id
+consultations.trainer_id > trainers.user_id
+payments.subscription_id > subscriptions.id
+payments.consultation_id > consultations.id
+sessions.subscription_id > subscriptions.id
+sessions.consultation_id > consultations.id
+check_ins.subscription_id > subscriptions.id
