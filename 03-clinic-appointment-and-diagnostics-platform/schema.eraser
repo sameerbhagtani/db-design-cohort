@@ -1,0 +1,175 @@
+title Clinic Appointment and Diagnostics Platform ER Diagram
+users [icon: user, color: blue] {
+  id SERIAL PK
+  
+  first_name VARCHAR(50) NOT NULL
+  last_name VARCHAR(50) NOT NULL
+  phone_number VARCHAR(15) NOT NULL
+  email VARCHAR(100) UNIQUE NOT NULL
+  password VARCHAR(255) NOT NULL
+
+  role ENUM('doctor', 'patient') NOT NULL
+  is_verified BOOLEAN DEFAULT FALSE
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+auth_tokens [icons: key, color: blue] {
+  id SERIAL PK
+
+  user_id INT NOT NULL FK
+  token VARCHAR(255) UNIQUE NOT NULL
+  type ENUM('verification', 'reset') NOT NULL
+
+  expires_at TIMESTAMP NOT NULL
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+doctors [icon: doctor, color: blue] {
+  user_id INT PK FK
+
+  experience_years INT
+  department_id INT NOT NULL FK
+  consultation_fee DECIMAL(10, 2) NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+departments [icon: office] {
+  id SERIAL PK
+
+  name VARCHAR(100) UNIQUE NOT NULL
+  description TEXT
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+specializations {
+  id SERIAL PK
+
+  name VARCHAR(100) UNIQUE NOT NULL
+  description TEXT
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+doctor_specializations {
+  doctor_id INT FK
+  specialization_id INT FK
+
+  // composite primary key (doctor_id, specialization_id)
+}
+
+patients [icon: user, color: blue] {
+  user_id INT PK FK
+
+  dob DATE NOT NULL
+  gender ENUM('male', 'female', 'other') NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+appointments {
+  id SERIAL PK
+
+  doctor_id INT NOT NULL FK
+  patient_id INT NOT NULL FK
+
+  scheduled_at TIMESTAMP NOT NULL
+  status ENUM('booked', 'cancelled', 'completed', 'no_show') NOT NULL DEFAULT 'booked'
+  reason TEXT
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+consultations {
+  id SERIAL PK
+
+  patient_id INT NOT NULL FK
+  doctor_id INT NOT NULL FK
+  appointment_id INT UNIQUE FK
+
+  diagnosis TEXT
+  notes TEXT
+
+  consulted_at TIMESTAMP NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+test_types {
+  id SERIAL PK
+
+  name VARCHAR(100) UNIQUE NOT NULL
+  description TEXT
+  cost DECIMAL(10,2)
+
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+tests {
+  id SERIAL PK
+
+  consultation_id INT NOT NULL FK
+  test_type_id INT NOT NULL FK
+
+  status ENUM('prescribed', 'in_progress', 'completed') DEFAULT 'prescribed'
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+reports {
+  id SERIAL PK
+
+  test_id INT UNIQUE NOT NULL FK
+
+  report_url TEXT
+  result_summary TEXT
+
+  generated_at TIMESTAMP NOT NULL
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+payments {
+  id SERIAL PK
+
+  patient_id INT NOT NULL FK
+
+  consultation_id INT FK
+  test_id INT FK
+
+  amount DECIMAL(10,2) NOT NULL
+  status ENUM('pending', 'completed', 'failed') DEFAULT 'pending'
+  method ENUM('cash', 'card', 'upi') NOT NULL
+
+  paid_at TIMESTAMP
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+// relations
+auth_tokens.user_id > users.id
+doctors.user_id - users.id
+doctors.department_id > departments.id
+doctor_specializations.doctor_id > doctors.user_id
+doctor_specializations.specialization_id > specializations.id
+patients.user_id - users.id
+appointments.patient_id > patients.user_id
+appointments.doctor_id > doctors.user_id
+consultations.patient_id > patients.user_id
+consultations.doctor_id > doctors.user_id
+consultations.appointment_id > appointments.id
+tests.consultation_id > consultations.id
+tests.test_type_id > test_types.id
+reports.test_id > tests.id
+payments.patient_id > patients.user_id
+payments.consultation_id > consultations.id
+payments.test_id > tests.id
