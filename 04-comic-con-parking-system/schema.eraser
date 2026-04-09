@@ -1,0 +1,122 @@
+title Comic-Con Parking System ER Diagram
+vehicles [icon: car, color: blue] {
+  id SERIAL PK
+
+  vehicle_number VARCHAR(15) UNIQUE NOT NULL
+  vehicle_type_id INT NOT NULL FK
+  is_ev BOOLEAN DEFAULT FALSE
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+vehicle_types [icon: car, color: blue] {
+  id SERIAL PK
+
+  name VARCHAR(20) UNIQUE NOT NULL
+  description TEXT
+
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+parking_levels [icon: building,color: green] {
+  id SERIAL PK
+
+  name VARCHAR(10) UNIQUE NOT NULL
+  
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+parking_zones [icon: circle, color: green] {
+  id SERIAL PK
+  parking_level_id INT NOT NULL FK
+
+  name VARCHAR(30) NOT NULL
+  access_category_id INT NOT NULL FK
+
+  // UNIQUE(parking_level_id, name)
+
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+parking_spots [icon: circle, color: green] {
+  id SERIAL PK
+  parking_zone_id INT NOT NULL FK
+
+  name VARCHAR(10) NOT NULL
+  spot_type_id INT NOT NULL FK
+
+  // UNIQUE(parking_zone_id, name)
+
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+parking_spot_types [icon: tag, color: green] {
+  id SERIAL PK
+
+  name VARCHAR(20) UNIQUE NOT NULL
+  description TEXT
+
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+access_categories [icon: tag, color: red] {
+  id SERIAL PK
+
+  name VARCHAR(30) UNIQUE NOT NULL
+  description TEXT
+
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+parking_sessions [icon: timer, color: yellow] {
+  id SERIAL PK
+
+  parking_spot_id INT NOT NULL FK
+  vehicle_id INT NOT NULL FK
+
+  access_category_id INT NOT NULL FK
+
+  start_time TIMESTAMP NOT NULL
+  end_time TIMESTAMP
+
+  name VARCHAR(30) NOT NULL
+  phone VARCHAR(15) NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+parking_tickets[icon: ticket, color: yellow] {
+  id SERIAL PK
+  parking_session_id INT UNIQUE FK
+
+  ticket_number VARCHAR(50) UNIQUE NOT NULL
+
+  issued_at TIMESTAMP DEFAULT NOW()
+}
+
+payments [icon: money, color: yellow] {
+  id SERIAL PK
+  parking_session_id INT NOT NULL FK
+
+  amount DECIMAL(10, 2) NOT NULL
+  status ENUM('pending', 'success', 'failed') NOT NULL
+  payment_method ENUM('upi', 'card', 'cash') NOT NULL
+  transaction_id VARCHAR(100) UNIQUE
+
+  paid_at TIMESTAMP
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+// relations
+vehicles.vehicle_type_id > vehicle_types.id
+parking_zones.parking_level_id > parking_levels.id
+parking_zones.access_category_id > access_categories.id
+parking_spots.parking_zone_id > parking_zones.id
+parking_sessions.parking_spot_id > parking_spots.id
+parking_spots.spot_type_id > parking_spot_types.id
+parking_sessions.vehicle_id > vehicles.id
+parking_sessions.access_category_id > access_categories.id
+parking_tickets.parking_session_id - parking_sessions.id
+payments.parking_session_id > parking_sessions.id
