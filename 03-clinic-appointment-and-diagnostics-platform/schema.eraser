@@ -15,7 +15,7 @@ users [icon: user, color: blue] {
   updated_at TIMESTAMP DEFAULT NOW()
 }
 
-auth_tokens [icons: key, color: blue] {
+auth_tokens [icon: key, color: blue] {
   id SERIAL PK
 
   user_id INT NOT NULL FK
@@ -38,7 +38,7 @@ doctors [icon: doctor, color: blue] {
   updated_at TIMESTAMP DEFAULT NOW()
 }
 
-departments [icon: office] {
+departments [icon: office, color: green] {
   id SERIAL PK
 
   name VARCHAR(100) UNIQUE NOT NULL
@@ -48,7 +48,7 @@ departments [icon: office] {
   updated_at TIMESTAMP DEFAULT NOW()
 }
 
-specializations {
+specializations [icon: doctor, color: green] {
   id SERIAL PK
 
   name VARCHAR(100) UNIQUE NOT NULL
@@ -58,7 +58,7 @@ specializations {
   updated_at TIMESTAMP DEFAULT NOW()
 }
 
-doctor_specializations {
+doctor_specializations [icon: doctor, color: green] {
   doctor_id INT FK
   specialization_id INT FK
 
@@ -70,12 +70,13 @@ patients [icon: user, color: blue] {
 
   dob DATE NOT NULL
   gender ENUM('male', 'female', 'other') NOT NULL
+  blood_group VARCHAR(5) NOT NULL
 
   created_at TIMESTAMP DEFAULT NOW()
   updated_at TIMESTAMP DEFAULT NOW()
 }
 
-appointments {
+appointments [icon: clock, color: red] {
   id SERIAL PK
 
   doctor_id INT NOT NULL FK
@@ -89,12 +90,12 @@ appointments {
   updated_at TIMESTAMP DEFAULT NOW()
 }
 
-consultations {
+consultations [icon: timer, color: red] {
   id SERIAL PK
 
   patient_id INT NOT NULL FK
   doctor_id INT NOT NULL FK
-  appointment_id INT UNIQUE FK
+  appointment_id INT UNIQUE FK // optional if a consultation is simply a walk-in one without an appointment
 
   diagnosis TEXT
   notes TEXT
@@ -105,7 +106,7 @@ consultations {
   updated_at TIMESTAMP DEFAULT NOW()
 }
 
-test_types {
+test_types [icon: report, color: yellow] {
   id SERIAL PK
 
   name VARCHAR(100) UNIQUE NOT NULL
@@ -115,7 +116,7 @@ test_types {
   created_at TIMESTAMP DEFAULT NOW()
 }
 
-tests {
+tests [icon: report, color: yellow] {
   id SERIAL PK
 
   consultation_id INT NOT NULL FK
@@ -127,7 +128,7 @@ tests {
   updated_at TIMESTAMP DEFAULT NOW()
 }
 
-reports {
+reports [icon: report, color: yellow] {
   id SERIAL PK
 
   test_id INT UNIQUE NOT NULL FK
@@ -139,17 +140,17 @@ reports {
   created_at TIMESTAMP DEFAULT NOW()
 }
 
-payments {
+payments [icon: money] {
   id SERIAL PK
 
-  patient_id INT NOT NULL FK
-
+  // payment is either gonna be for a consultation or a test
   consultation_id INT FK
   test_id INT FK
 
   amount DECIMAL(10,2) NOT NULL
   status ENUM('pending', 'completed', 'failed') DEFAULT 'pending'
   method ENUM('cash', 'card', 'upi') NOT NULL
+  transaction_id VARCHAR(100) UNIQUE
 
   paid_at TIMESTAMP
   created_at TIMESTAMP DEFAULT NOW()
@@ -160,16 +161,15 @@ auth_tokens.user_id > users.id
 doctors.user_id - users.id
 doctors.department_id > departments.id
 doctor_specializations.doctor_id > doctors.user_id
-doctor_specializations.specialization_id > specializations.id
+doctor_specializations.specialization_id > specializations.id 
 patients.user_id - users.id
 appointments.patient_id > patients.user_id
 appointments.doctor_id > doctors.user_id
 consultations.patient_id > patients.user_id
 consultations.doctor_id > doctors.user_id
-consultations.appointment_id > appointments.id
+consultations.appointment_id - appointments.id
 tests.consultation_id > consultations.id
 tests.test_type_id > test_types.id
 reports.test_id > tests.id
-payments.patient_id > patients.user_id
 payments.consultation_id > consultations.id
-payments.test_id > tests.id
+payments.test_id > tests.id 
