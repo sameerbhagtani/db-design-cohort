@@ -39,7 +39,7 @@ parking_zones [icon: circle, color: green] {
   created_at TIMESTAMP DEFAULT NOW()
 }
 
-parking_spots [icon: circle, color: green] {
+parking_spots [icon: square, color: green] {
   id SERIAL PK
   parking_zone_id INT NOT NULL FK
 
@@ -80,8 +80,8 @@ parking_sessions [icon: timer, color: yellow] {
   start_time TIMESTAMP NOT NULL
   end_time TIMESTAMP
 
-  name VARCHAR(30) NOT NULL
-  phone VARCHAR(15) NOT NULL
+  visitor_name VARCHAR(30) NOT NULL
+  visitor_phone VARCHAR(15) NOT NULL
 
   created_at TIMESTAMP DEFAULT NOW()
   updated_at TIMESTAMP DEFAULT NOW()
