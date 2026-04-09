@@ -105,8 +105,9 @@ payments[icon: money, color: yellow] {
   status ENUM('pending', 'success', 'failed') NOT NULL
   payment_method ENUM('upi', 'card', 'cod') NOT NULL
 
-  transaction_id VARCHAR(100)
+  transaction_id VARCHAR(100) UNIQUE
 
+  paid_at TIMESTAMP
   created_at TIMESTAMP DEFAULT NOW()
   updated_at TIMESTAMP DEFAULT NOW()
 }
