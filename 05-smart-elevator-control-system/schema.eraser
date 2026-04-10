@@ -1,0 +1,118 @@
+title Smart Elevator Control System ER Diagram
+buildings [icon: building, color: blue] {
+  id SERIAL PK
+
+  name VARCHAR(30) NOT NULL
+  street TEXT NOT NULL
+  city VARCHAR(50) NOT NULL
+  state VARCHAR(50) NOT NULL
+  pincode VARCHAR(10) NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+floors [icon: grid, color: blue] {
+  id SERIAL PK
+  building_id INT NOT NULL FK
+
+  number INT NOT NULL
+  name VARCHAR(30)
+
+  // UNIQUE (building_id, number)
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+zones [icon: circle, color: blue] {
+  id SERIAL PK
+  building_id INT NOT NULL FK
+  
+  name VARCHAR(30)
+
+  min_floor_id INT NOT NULL FK
+  max_floor_id INT NOT NULL FK
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()  
+}
+
+elevator_shafts [icon: columns, color: green] {
+  id SERIAL PK
+  zone_id INT NOT NULL FK
+
+  name VARCHAR(30)
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+elevators [icon: box, color: green] {
+  id SERIAL PK
+  shaft_id INT UNIQUE NOT NULL FK
+
+  current_floor_id INT FK
+  direction ENUM('up', 'down', 'idle') NOT NULL
+
+  status ENUM('working', 'maintenance', 'out_of_service') NOT NULL
+  capacity_kg INT NOT NULL
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+floor_requests [icon: bell, color: yellow] {
+  id SERIAL PK
+
+  floor_id INT NOT NULL FK
+  direction ENUM('up', 'down') NOT NULL
+  status ENUM('pending', 'assigned', 'completed', 'cancelled') NOT NULL DEFAULT 'pending'
+
+  ride_log_id INT FK
+  assigned_elevator_id INT FK
+  assigned_at TIMESTAMP
+  completed_at TIMESTAMP
+
+  created_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP DEFAULT NOW()
+}
+
+ride_logs [icon: activity, color: yellow] {
+  id SERIAL PK
+
+  elevator_id INT NOT NULL FK
+  start_floor_id INT NOT NULL FK
+  end_floor_id INT NOT NULL FK
+  start_time TIMESTAMP NOT NULL
+  end_time TIMESTAMP
+
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+maintenance_logs [icon: wrench, color: red] {
+  id SERIAL PK
+  elevator_id INT NOT NULL FK
+
+  started_at TIMESTAMP NOT NULL
+  ended_at TIMESTAMP
+  type ENUM('scheduled', 'emergency') NOT NULL
+  reason TEXT
+
+  created_at TIMESTAMP DEFAULT NOW()
+}
+
+//relations
+floors.building_id > buildings.id
+zones.building_id > buildings.id
+zones.min_floor_id > floors.id
+zones.max_floor_id > floors.id
+elevator_shafts.zone_id > zones.id
+elevators.shaft_id - elevator_shafts.id
+floor_requests.floor_id > floors.id
+floor_requests.ride_log_id > ride_logs.id
+floor_requests.assigned_elevator_id > elevators.id
+ride_logs.elevator_id > elevators.id
+ride_logs.start_floor_id > floors.id
+ride_logs.end_floor_id > floors.id
+maintenance_logs.elevator_id > elevators.id
