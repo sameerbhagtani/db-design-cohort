@@ -1,0 +1,107 @@
+title Instagram ER Diagram
+users [icon: user, color: green] {
+  id SERIAL PK
+
+  username VARCHAR(50) UNIQUE NOT NULL
+  email VARCHAR(100) UNIQUE NOT NULL
+  phone VARCHAR(15)
+  dob DATE
+  password VARCHAR(256)
+  bio TEXT
+  avatar_url TEXT
+
+  forgot_password_token TEXT
+  email_verification_token TEXT
+
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+account_settings [icon: settings, color: green] {
+  id SERIAL PK
+
+  user_id INT NOT NULL UNIQUE FK
+}
+
+posts [icon: notebook, color: blue] {
+  id SERIAL PK
+
+  caption TEXT
+  image_url TEXT
+  video_url TEXT
+  reel_url TEXT
+
+  author_id INT NOT NULL FK
+
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+stories [icon: notebook, color: blue] {
+  id SERIAL PK
+
+  image_url TEXT
+  video_url TEXT
+  post_id INT FK
+
+  author_id INT NOT NULL FK
+
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+bookmarks [icon: bookmark, color: blue] {
+  id SERIAL PK
+
+  post_id INT NOT NULL FK
+  author_id INT NOT NULL FK
+
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+comments [icon: message-circle, color: yellow] {
+  id SERIAL PK
+
+  author_id INT NOT NULL FK
+  post_id INT NOT NULL FK
+
+  content TEXT NOT NULL
+
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+likes [icon: heart, color: yellow] {
+  id SERIAL PK
+
+  author_id INT NOT NULL FK
+  post_id INT NOT NULL FK
+
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+followers [icon: user, color: yellow] {
+  id SERIAL PK
+
+  follower_id INT NOT NULL FK   // the one who follows
+  following_id INT NOT NULL FK  // the one being followed
+
+  created_at TIMESTAMP
+  updated_at TIMESTAMP
+}
+
+// relations
+users.id < posts.author_id
+users.id < stories.author_id
+users.id < bookmarks.author_id
+users.id - account_settings.user_id
+stories.post_id > posts.id
+bookmarks.post_id > posts.id
+comments.author_id > users.id
+comments.post_id > posts.id
+likes.author_id > users.id
+likes.post_id > posts.id
+users.id < followers.follower_id
+users.id < followers.following_id
