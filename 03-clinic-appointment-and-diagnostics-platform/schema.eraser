@@ -172,4 +172,4 @@ tests.consultation_id > consultations.id
 tests.test_type_id > test_types.id
 reports.test_id > tests.id
 payments.consultation_id > consultations.id
-payments.test_id > tests.id 
+payments.test_id > tests.id
